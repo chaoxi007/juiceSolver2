@@ -26,5 +26,5 @@ session_state.json
 .DS_Store
 Thumbs.db
 
-# Config with secrets
-config.yaml
+# Config with secrets (uncomment if you put plaintext keys in config.yaml)
+# config.yaml

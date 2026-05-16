@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
@@ -46,6 +47,14 @@ class Config:
     persistence_file: str = "session_state.json"
 
 
+def _resolve_env(value: str) -> str:
+    """Resolve ${ENV_VAR} placeholders to environment variable values."""
+    if value.startswith("${") and value.endswith("}"):
+        env_name = value[2:-1]
+        return os.environ.get(env_name, "")
+    return value
+
+
 def load_config(path: Path | str = "config.yaml") -> Config:
     path = Path(path)
     if not path.exists():
@@ -56,10 +65,12 @@ def load_config(path: Path | str = "config.yaml") -> Config:
 
     providers = {}
     for name, pconf in raw.get("llm", {}).get("providers", {}).items():
+        api_key = _resolve_env(pconf.get("api_key", ""))
+        base_url = _resolve_env(pconf.get("base_url", ""))
         providers[name] = ProviderConfig(
             model=pconf["model"],
-            api_key=pconf.get("api_key", ""),
-            base_url=pconf.get("base_url", ""),
+            api_key=api_key,
+            base_url=base_url,
         )
 
     llm_raw = raw.get("llm", {})
